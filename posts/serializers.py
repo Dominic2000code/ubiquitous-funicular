@@ -1,5 +1,10 @@
 from rest_framework import serializers
 from .models import Post, TextPost, ImagePost, VideoPost
+import redis
+from django.conf import settings
+
+r = redis.Redis(host=settings.REDIS_HOST,
+                port=settings.REDIS_PORT, db=settings.REDIS_DB)
 
 
 class TextPostSerializer(serializers.ModelSerializer):
@@ -22,6 +27,7 @@ class VideoPostSerializer(serializers.ModelSerializer):
 
 class PostSerializer(serializers.ModelSerializer):
     content_object = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -37,3 +43,6 @@ class PostSerializer(serializers.ModelSerializer):
         else:
             serializer = None
         return serializer.data if serializer else None
+
+    def get_likes_count(self, obj):
+        return r.zscore('post:likes_count', obj.id) or 0

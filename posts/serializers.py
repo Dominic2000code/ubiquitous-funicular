@@ -5,19 +5,19 @@ from .models import Post, TextPost, ImagePost, VideoPost
 class TextPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextPost
-        fields = '__all__'
+        fields = ['id', 'author', 'created_at', 'content']
 
 
 class ImagePostSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImagePost
-        fields = '__all__'
+        fields = ['id', 'author', 'created_at', 'image']
 
 
 class VideoPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = VideoPost
-        fields = '__all__'
+        fields = ['id', 'author', 'created_at', 'video']
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -25,7 +25,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = '__all__'
+        exclude = ['polymorphic_ctype']
 
     def get_content_object(self, obj):
         if isinstance(obj, TextPost):

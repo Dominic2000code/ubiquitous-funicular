@@ -1,4 +1,4 @@
-from .user_views import CustomUserDetailView, CustomUserListCreateView
+from .user_views import CustomUserDetailView, CustomUserListCreateView, FollowerListView, ToggleFollowView
 from .post_views import (PostListView, PostDetailView,
                          TextPostCreateView, TextPostDetailView,
                          ImagePostCreateView, ImagePostDetailView,

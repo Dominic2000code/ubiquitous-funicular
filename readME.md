@@ -20,6 +20,12 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+## Start Redis server
+
+```bash
+redis-server
+```
+
 ## Run tests
 
 ```bash

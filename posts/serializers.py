@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Post, TextPost, ImagePost, VideoPost
+from .models import Post, TextPost, ImagePost, VideoPost, Repost
 import redis
 from django.conf import settings
 
@@ -46,3 +46,9 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_likes_count(self, obj):
         return r.zscore('post:likes_count', obj.id) or 0
+
+
+class RepostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Repost
+        fields = '__all__'

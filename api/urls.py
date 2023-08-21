@@ -5,7 +5,8 @@ from .views import (CustomUserDetailView, CustomUserListCreateView,
                     ImagePostCreateView, ImagePostDetailView,
                     VideoPostCreateView, VideoPostDetailView,
                     PostListView, PostDetailView,
-                    ToggleLikeView, RepostView, RepostListAPIView)
+                    ToggleLikeView, RepostView, RepostListAPIView,
+                    FollowerListView, ToggleFollowView)
 
 app_name = 'api'
 
@@ -15,6 +16,10 @@ router = DefaultRouter()
 urlpatterns = [
     path('users/', CustomUserListCreateView.as_view(), name='user-list-create'),
     path('users/<int:pk>/', CustomUserDetailView.as_view(), name='user-detail'),
+    path('users/toggle-follow/<int:user_id>/',
+         ToggleFollowView.as_view(), name='toggle-follow'),
+    path('users/followers/<int:user_id>/',
+         FollowerListView.as_view(), name='follower-list'),
 
     path('posts/text-posts/', TextPostCreateView.as_view(),
          name='textpost-list-create'),

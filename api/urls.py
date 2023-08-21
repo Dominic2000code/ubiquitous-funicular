@@ -5,7 +5,7 @@ from .views import (CustomUserDetailView, CustomUserListCreateView,
                     ImagePostCreateView, ImagePostDetailView,
                     VideoPostCreateView, VideoPostDetailView,
                     PostListView, PostDetailView,
-                    ToggleLikeView)
+                    ToggleLikeView, RepostView, RepostListAPIView)
 
 app_name = 'api'
 
@@ -36,4 +36,8 @@ urlpatterns = [
 
     path('posts/toggle-like/<int:post_id>/',
          ToggleLikeView.as_view(), name='toggle-like'),
+
+    path('posts/repost/<int:post_id>/', RepostView.as_view(), name='repost'),
+    path('posts/reposts/<int:post_id>/',
+         RepostListAPIView.as_view(), name='repost-list'),
 ]

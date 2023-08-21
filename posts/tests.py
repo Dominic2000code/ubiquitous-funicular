@@ -75,3 +75,11 @@ class PostModelTests(TestCase):
             author=self.user, video='path/to/test/video.mp4')
         post = Post.objects.get(id=video_post.id)
         self.assertIsInstance(post, VideoPost)
+
+    def test_model_likes(self):
+        """Test adding likes to the model"""
+        post = TextPost.objects.create(
+            author=self.user, content='Test post content.')
+        self.assertEqual(post.likes.count(), 0)
+        post.likes.add(self.user)
+        self.assertEqual(post.likes.count(), 1)

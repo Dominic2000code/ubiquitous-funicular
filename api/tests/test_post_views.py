@@ -6,7 +6,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.files import File
 from posts.models import TextPost, VideoPost, ImagePost
 from django.core.files.storage import default_storage
+from django.conf import settings
 import io
+import redis
 
 User = get_user_model()
 
@@ -34,6 +36,8 @@ class PostViewsTests(TestCase):
                 io.BytesIO(self.video_data), name='test_video.mp4'
             )
         )
+        self.r = redis.StrictRedis(host=settings.REDIS_HOST,
+                                   port=settings.REDIS_PORT, db=settings.REDIS_DB)
 
     def delete_files(self, file_paths):
         for file_path in file_paths:
@@ -50,6 +54,7 @@ class PostViewsTests(TestCase):
         default_storage.delete('post_images/test_image.jpg')
         default_storage.delete('post_videos/test_video.mp4')
         default_storage.delete('post_videos/video')
+        self.r.zrem('post:likes_count', self.text_post.id)
 
     def test_create_text_post(self):
         url = reverse('api:textpost-list-create')
@@ -114,3 +119,14 @@ class PostViewsTests(TestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 204)
         self.assertEqual(VideoPost.objects.count(), 0)
+
+    def test_toggle_like_view(self):
+        url = reverse('api:toggle-like', args=[self.text_post.id])
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['likes_count'], 1)
+
+        # Test toggling the like
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['likes_count'], 0)

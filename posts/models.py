@@ -20,6 +20,9 @@ class Repost(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ('user', 'original_post')
+
     def __str__(self) -> str:
         return f"Repost of {self.original_post.author}'s post by {self.user}"
 

@@ -7,7 +7,10 @@ from .views import (CustomUserDetailView, CustomUserListCreateView,
                     PostListView, PostDetailView,
                     ToggleLikeView, RepostView, RepostListAPIView,
                     FollowerListView, ToggleFollowView,
-                    FollowingListView)
+                    FollowingListView, GroupListCreateView,
+                    JoinLeaveGroupView, GroupDeleteView,
+                    KickMemberView, GroupPostListCreateView,
+                    GroupPostDetailView)
 
 app_name = 'api'
 
@@ -22,7 +25,7 @@ urlpatterns = [
     path('users/followers/<int:user_id>/',
          FollowerListView.as_view(), name='follower-list'),
     path('users/following/<int:user_id>/',
-         FollowingListView.as_view(), name='follower-list'),
+         FollowingListView.as_view(), name='following-list'),
 
     path('posts/text-posts/', TextPostCreateView.as_view(),
          name='textpost-list-create'),
@@ -48,4 +51,17 @@ urlpatterns = [
     path('posts/repost/<int:post_id>/', RepostView.as_view(), name='repost'),
     path('posts/reposts/<int:post_id>/',
          RepostListAPIView.as_view(), name='repost-list'),
+
+    path('groups/', GroupListCreateView.as_view(), name='group-list-create'),
+    path('groups/<int:group_id>/join/',
+         JoinLeaveGroupView.as_view(), name='join-group'),
+    path('groups/<int:group_id>/leave/',
+         JoinLeaveGroupView.as_view(), name='leave-group'),
+    path('groups/<int:group_id>/delete/',
+         GroupDeleteView.as_view(), name='delete-group'),
+    path('groups/<int:group_id>/kick/<int:user_id>/',
+         KickMemberView.as_view(), name='kick-member'),
+    path('groups/posts/', GroupPostListCreateView.as_view(), name='group-post-list'),
+    path('groups/post/<int:pk>/', GroupPostDetailView.as_view(),
+         name='group-post-detail'),
 ]

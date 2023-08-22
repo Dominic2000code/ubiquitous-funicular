@@ -36,12 +36,18 @@ class ToggleFollowView(APIView):
         user = User.objects.get(pk=user_id)
         follower = request.user
 
+        if user == follower:
+            return Response({'detail': 'You cannot follow yourself.'}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             follow_instance = Follow.objects.get(user=user, follower=follower)
             follow_instance.delete()
 
             # Decrement follower count in Redis
             r.zincrby('user:follower_count', -1, user_id)
+
+            # Decrement following count in Redis for the follower user
+            r.zincrby('user:following_count', -1, follower.id)
 
             return Response({'detail': f'You have unfollowed {user.username}.'}, status=status.HTTP_200_OK)
         except Follow.DoesNotExist:
@@ -52,6 +58,9 @@ class ToggleFollowView(APIView):
 
             # Increment follower count in Redis
             r.zincrby('user:follower_count', 1, user_id)
+
+            # Increment following count in Redis for the follower user
+            r.zincrby('user:following_count', 1, follower.id)
 
             return Response({'detail': f'You are now following {user.username}.'}, status=status.HTTP_201_CREATED)
 
@@ -75,6 +84,7 @@ class FollowerListView(APIView):
             data = {
                 'follower': CustomUserSerializer(follower).data,
                 'followed_at': followers.get(follower=follower).created_at,
+                'following_count': Follow.get_following_count(follower.id),
                 'followers_count': Follow.get_follower_count(follower.id)
             }
             follower_data.append(data)
@@ -84,5 +94,39 @@ class FollowerListView(APIView):
             'followers_count': total_followers_count
         }
         cache.set(f'followers_data_{user_id}', response_data, 3600)
+
+        return Response(response_data)
+
+
+class FollowingListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_id):
+        cached_data = cache.get(f'following_data_{user_id}')
+        # if cached_data:
+        #     return Response(cached_data)
+
+        user = get_object_or_404(CustomUser, id=user_id)
+        following = Follow.objects.filter(follower=user)
+        following_user_ids = following.values_list('user_id', flat=True)
+        following_users = CustomUser.objects.filter(id__in=following_user_ids)
+
+        following_data = []
+        total_following_count = Follow.get_following_count(user.id)
+
+        for following_user in following_users:
+            data = {
+                'following_user': CustomUserSerializer(following_user).data,
+                'followed_at': following.get(user=following_user).created_at,
+                'following_count': Follow.get_following_count(following_user.id),
+                'followers_count': Follow.get_follower_count(following_user.id)
+            }
+            following_data.append(data)
+
+        response_data = {
+            'following': following_data,
+            'following_count': total_following_count
+        }
+        # cache.set(f'following_data_{user_id}', response_data, 3600)
 
         return Response(response_data)

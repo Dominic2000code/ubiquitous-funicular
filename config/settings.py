@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     # local-apps
     'users',
     'api',
+    'groups',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'

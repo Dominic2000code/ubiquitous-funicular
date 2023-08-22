@@ -5,6 +5,8 @@ import redis
 
 
 # Create your models here.
+r = redis.Redis(host=settings.REDIS_HOST,
+                port=settings.REDIS_PORT, db=settings.REDIS_DB)
 
 
 class CustomUser(AbstractUser):
@@ -34,6 +36,9 @@ class Follow(models.Model):
 
     @classmethod
     def get_follower_count(cls, user_id):
-        r = redis.Redis(host=settings.REDIS_HOST,
-                        port=settings.REDIS_PORT, db=settings.REDIS_DB)
         return r.zscore('user:follower_count', user_id) or 0
+
+    @classmethod
+    def get_following_count(cls, user_id):
+
+        return r.zscore('user:following_count', user_id) or 0

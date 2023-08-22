@@ -2,11 +2,14 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
-from users.models import CustomUser
+from users.models import CustomUser, Follow
 from users.serializers import CustomUserSerializer
-from rest_framework.authtoken.models import Token
+from django.conf import settings
+from django.test import override_settings
+import redis
 
 
+@override_settings(REDIS_DB=settings.TEST_REDIS_DB)
 class CustomUserViewsTest(TestCase):
 
     def setUp(self):
@@ -19,7 +22,19 @@ class CustomUserViewsTest(TestCase):
             'bio': 'Test bio'
         }
         self.user = CustomUser.objects.create(**self.user_data)
+        self.follower = CustomUser.objects.create(
+            username='testFollower',
+            first_name='Test',
+            last_name='Follower',
+            age=25,
+            bio='Test Follower bio'
+        )
         self.client.force_authenticate(self.user)
+        self.r = redis.StrictRedis(host=settings.REDIS_HOST,
+                                   port=settings.REDIS_PORT, db=settings.REDIS_DB)
+
+    def tearDown(self):
+        self.r.zrem('user:follower_count', self.user.id)
 
     def test_create_user(self):
         """Test user creation"""
@@ -61,3 +76,24 @@ class CustomUserViewsTest(TestCase):
         user = CustomUser.objects.get(id=self.user.id)
         self.assertEqual(user.first_name, updated_data['first_name'])
         self.assertEqual(user.age, updated_data['age'])
+
+    def test_toggle_follow(self):
+        url = reverse('api:toggle-follow', args=[self.follower.id])
+
+        response = self.client.post(url)
+        self.assertEqual(response.status_code,
+                         status.HTTP_201_CREATED)  # Follow
+
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)  # Unfollow
+
+    def test_follower_list_view(self):
+        url = reverse('api:follower-list', args=[self.user.id])
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['followers']), 1)
+        self.assertEqual(
+            response.data['followers'][0]['follower']['username'],
+            self.follower.username
+        )

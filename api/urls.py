@@ -57,7 +57,7 @@ urlpatterns = [
          JoinLeaveGroupView.as_view(), name='join-group'),
     path('groups/<int:group_id>/leave/',
          JoinLeaveGroupView.as_view(), name='leave-group'),
-    path('groups/<int:group_id>/delete/',
+    path('groups/<int:pk>/delete/',
          GroupDeleteView.as_view(), name='delete-group'),
     path('groups/<int:group_id>/kick/<int:user_id>/',
          KickMemberView.as_view(), name='kick-member'),

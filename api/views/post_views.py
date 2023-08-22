@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from django.shortcuts import get_object_or_404
 from rest_framework import status
+from django.db import IntegrityError
 from rest_framework.permissions import IsAuthenticated
 from posts.models import Post, TextPost, ImagePost, VideoPost, Repost
 from posts.serializers import TextPostSerializer, ImagePostSerializer, VideoPostSerializer, PostSerializer, RepostSerializer
@@ -94,12 +95,16 @@ class RepostView(APIView):
 
         user = request.user
 
-        repost = Repost.objects.create(original_post=original_post, user=user)
-        original_post.repost_count += 1
-        original_post.save()
+        try:
+            repost = Repost.objects.create(
+                original_post=original_post, user=user)
+            original_post.repost_count += 1
+            original_post.save()
 
-        serializer = RepostSerializer(repost)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+            serializer = RepostSerializer(repost)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except IntegrityError:
+            return Response({'detail': 'You have already reposted this post.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RepostListAPIView(generics.ListAPIView):

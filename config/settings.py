@@ -179,6 +179,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 REDIS_HOST = '127.0.0.1'
 REDIS_PORT = 6379
 REDIS_DB = 0
+TEST_REDIS_DB = 3
 
 CACHES = {
     "default": {

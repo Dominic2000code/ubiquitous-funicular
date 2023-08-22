@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from .models import TextPost, ImagePost, VideoPost, Post
+from .models import TextPost, ImagePost, VideoPost, Post, Repost
 from .serializers import TextPostSerializer, ImagePostSerializer, VideoPostSerializer
 
 User = get_user_model()
@@ -83,3 +83,11 @@ class PostModelTests(TestCase):
         self.assertEqual(post.likes.count(), 0)
         post.likes.add(self.user)
         self.assertEqual(post.likes.count(), 1)
+
+    def test_repost_creation(self):
+        text_post = TextPost.objects.create(
+            author=self.user, content='This is a test content.')
+        repost = Repost.objects.create(
+            original_post=text_post, user=self.user)
+        self.assertEqual(
+            str(repost), f"Repost of {text_post.author}'s post by {self.user}")

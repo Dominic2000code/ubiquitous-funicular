@@ -4,15 +4,17 @@ from rest_framework.test import APIClient
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.files import File
-from posts.models import TextPost, VideoPost, ImagePost
+from posts.models import TextPost, VideoPost, ImagePost, Repost
 from django.core.files.storage import default_storage
 from django.conf import settings
+from django.test import override_settings
 import io
 import redis
 
 User = get_user_model()
 
 
+@override_settings(REDIS_DB=settings.TEST_REDIS_DB)
 class PostViewsTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -36,6 +38,10 @@ class PostViewsTests(TestCase):
                 io.BytesIO(self.video_data), name='test_video.mp4'
             )
         )
+
+        self.repost = Repost.objects.create(
+            original_post=self.text_post, user=self.user)
+
         self.r = redis.StrictRedis(host=settings.REDIS_HOST,
                                    port=settings.REDIS_PORT, db=settings.REDIS_DB)
 
@@ -130,3 +136,23 @@ class PostViewsTests(TestCase):
         response = self.client.post(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['likes_count'], 0)
+
+    def test_create_repost(self):
+        url = reverse('api:repost', args=[self.image_post.id])
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Repost.objects.count(), 2)
+
+    def test_get_repost_list(self):
+        url = reverse('api:repost-list', args=[self.text_post.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(
+            response.data[0]['user'], self.user.id)
+
+    def test_get_repost_list_nonexistent_post(self):
+        url = reverse('api:repost-list', args=[999])  # Nonexistent post ID
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 0)

@@ -1,10 +1,16 @@
 from rest_framework import serializers
-from .models import Post, TextPost, ImagePost, VideoPost, Repost
+from .models import Post, TextPost, ImagePost, VideoPost, Repost, Comment, Reply
 import redis
 from django.conf import settings
 
 r = redis.Redis(host=settings.REDIS_HOST,
                 port=settings.REDIS_PORT, db=settings.REDIS_DB)
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = '__all__'
 
 
 class TextPostSerializer(serializers.ModelSerializer):
@@ -28,6 +34,7 @@ class VideoPostSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     content_object = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()
+    comments = CommentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
@@ -51,4 +58,10 @@ class PostSerializer(serializers.ModelSerializer):
 class RepostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Repost
+        fields = '__all__'
+
+
+class ReplySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reply
         fields = '__all__'

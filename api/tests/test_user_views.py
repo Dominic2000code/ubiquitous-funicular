@@ -6,6 +6,7 @@ from users.models import CustomUser, Follow
 from users.serializers import CustomUserSerializer
 from django.conf import settings
 from django.test import override_settings
+from ..utils import set_testing
 import redis
 
 
@@ -88,12 +89,27 @@ class CustomUserViewsTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)  # Unfollow
 
     def test_follower_list_view(self):
-        url = reverse('api:follower-list', args=[self.follower.id])
+        follow = Follow.objects.create(user=self.user, follower=self.follower)
+        url = reverse('api:follower-list', args=[self.user.id])
 
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # self.assertEqual(len(response.data['followers']), 1)
-        # self.assertEqual(
-        #     response.data['followers'][0]['follower']['username'],
-        #     self.follower.username
-        # )
+        with set_testing(True):  # Temporarily set TESTING to True
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data['followers']), 1)
+            self.assertEqual(
+                response.data['followers'][0]['follower']['username'],
+                self.follower.username
+            )
+
+    def test_following_list_view(self):
+        follow = Follow.objects.create(user=self.user, follower=self.follower)
+        url = reverse('api:following-list', args=[self.follower.id])
+
+        with set_testing(True):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data['following']), 1)
+            self.assertEqual(
+                response.data['following'][0]['following_user']['username'],
+                self.user.username
+            )

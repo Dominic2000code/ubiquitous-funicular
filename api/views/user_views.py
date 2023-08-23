@@ -69,9 +69,10 @@ class FollowerListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, user_id, format=None):
-        cached_data = cache.get(f'followers_data_{user_id}')
-        if cached_data:
-            return Response(cached_data)
+        if not settings.TESTING:
+            cached_data = cache.get(f'followers_data_{user_id}')
+            if cached_data:
+                return Response(cached_data)
 
         user = get_object_or_404(CustomUser, id=user_id)
         followers = Follow.objects.filter(user=user)
@@ -84,7 +85,6 @@ class FollowerListView(APIView):
             data = {
                 'follower': CustomUserSerializer(follower).data,
                 'followed_at': followers.get(follower=follower).created_at,
-                'following_count': Follow.get_following_count(follower.id),
                 'followers_count': Follow.get_follower_count(follower.id)
             }
             follower_data.append(data)
@@ -93,7 +93,8 @@ class FollowerListView(APIView):
             'followers': follower_data,
             'followers_count': total_followers_count
         }
-        cache.set(f'followers_data_{user_id}', response_data, 3600)
+        if not settings.TESTING:
+            cache.set(f'followers_data_{user_id}', response_data, 3600)
 
         return Response(response_data)
 
@@ -102,9 +103,10 @@ class FollowingListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, user_id):
-        cached_data = cache.get(f'following_data_{user_id}')
-        # if cached_data:
-        #     return Response(cached_data)
+        if not settings.TESTING:
+            cached_data = cache.get(f'following_data_{user_id}')
+            if cached_data:
+                return Response(cached_data)
 
         user = get_object_or_404(CustomUser, id=user_id)
         following = Follow.objects.filter(follower=user)
@@ -127,6 +129,7 @@ class FollowingListView(APIView):
             'following': following_data,
             'following_count': total_following_count
         }
-        # cache.set(f'following_data_{user_id}', response_data, 3600)
+        if not settings.TESTING:
+            cache.set(f'following_data_{user_id}', response_data, 3600)
 
         return Response(response_data)

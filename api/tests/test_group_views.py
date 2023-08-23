@@ -67,28 +67,52 @@ class GroupViewsTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(group.members.count(), 0)
 
-    # def test_create_group_post(self):
-    #     group = self.create_group()
-    #     self.client.force_authenticate(self.user1)
-    #     url = reverse('api:group-post-list')
-    #     data = {
-    #         "group": group.id,
-    #         "content": "Hello, Group!",
-    #         "author": self.user1.id
-    #     }
-    #     response = self.client.post(url, data)
+    def test_create_group_post(self):
+        group = self.create_group()
+        Membership.objects.create(user=self.user1, group=group)
+        self.client.force_authenticate(self.user1)
+        url = reverse('api:group-post-list')
+        data = {
+            "group": group.id,
+            "content": "Hello, Group!",
+            "author": self.user1.id
+        }
+        response = self.client.post(url, data)
 
-    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-    #     self.assertEqual(GroupPost.objects.count(), 1)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(GroupPost.objects.count(), 1)
 
-    # def test_get_group_post(self):
-    #     group = self.create_group()
-    #     post = GroupPost.objects.create(
-    #         group=group, author=self.user1, content="Hello, Group!")
-    #     self.client.force_authenticate(self.user1)
-    #     url = reverse('api:group-post-detail', args=[post.id])
-    #     response = self.client.get(url)
+    def test_get_group_post(self):
+        group = self.create_group()
+        Membership.objects.create(user=self.user1, group=group)
+        post = GroupPost.objects.create(
+            group=group, author=self.user1, content="Hello, Group!")
+        self.client.force_authenticate(self.user1)
+        url = reverse('api:group-post-detail', args=[post.id])
+        response = self.client.get(url)
 
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    # Add more tests for updating and deleting group posts
+    def test_update_group_post(self):
+        group = self.create_group()
+        Membership.objects.create(user=self.user1, group=group)
+        post = GroupPost.objects.create(
+            group=group, author=self.user1, content="Hello, Group!")
+        update_data = {
+            "content": "Updated content"
+        }
+        self.client.force_authenticate(self.user1)
+        url = reverse('api:group-post-detail', args=[post.id])
+        response = self.client.patch(url, update_data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(update_data["content"], response.data['content'])
+
+    def test_delete_group_post(self):
+        group = self.create_group()
+        Membership.objects.create(user=self.user1, group=group)
+        post = GroupPost.objects.create(
+            group=group, author=self.user1, content="Hello, Group!")
+        self.client.force_authenticate(self.user1)
+        url = reverse('api:group-post-detail', args=[post.id])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

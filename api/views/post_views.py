@@ -6,8 +6,11 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from django.db import IntegrityError
 from rest_framework.permissions import IsAuthenticated
-from posts.models import Post, TextPost, ImagePost, VideoPost, Repost
-from posts.serializers import TextPostSerializer, ImagePostSerializer, VideoPostSerializer, PostSerializer, RepostSerializer
+from posts.models import Post, TextPost, ImagePost, VideoPost, Repost, Reply, Comment
+from posts.serializers import (
+    TextPostSerializer, ImagePostSerializer, VideoPostSerializer,
+    PostSerializer, RepostSerializer, CommentSerializer, ReplySerializer
+)
 import redis
 from django.conf import settings
 
@@ -113,3 +116,61 @@ class RepostListAPIView(generics.ListAPIView):
     def get_queryset(self):
         post_id = self.kwargs['post_id']
         return Repost.objects.filter(original_post_id=post_id)
+
+
+class CommentListCreateView(generics.ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        post_id = self.kwargs['post_id']
+        post_instance = get_object_or_404(Post, id=post_id)
+        return post_instance.comments.all()
+
+    def perform_create(self, serializer):
+        post_id = self.kwargs['post_id']
+        post_instance = get_object_or_404(Post, id=post_id)
+
+        serializer.save(author=self.request.user)
+        post_instance.comments.add(serializer.instance)
+
+
+class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        post_id = self.kwargs['post_id']
+        comment_id = self.kwargs['pk']
+        comment = get_object_or_404(
+            Comment, id=comment_id,  post_comments__id=post_id)
+        return comment
+
+
+class ReplyListCreateView(generics.ListCreateAPIView):
+    queryset = Reply.objects.all()
+    serializer_class = ReplySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        comment_id = self.kwargs['comment_id']
+        comment = get_object_or_404(Comment, id=comment_id)
+        return comment.replies.all()
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+
+class ReplyDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Reply.objects.all()
+    serializer_class = ReplySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        comment_id = self.kwargs['comment_id']
+        reply_id = self.kwargs['pk']
+        reply = get_object_or_404(
+            Reply, id=reply_id,  parent_comment_id=comment_id)
+        return reply

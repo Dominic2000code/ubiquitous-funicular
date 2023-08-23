@@ -8,8 +8,11 @@ User = get_user_model()
 class Post(PolymorphicModel):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    likes = models.ManyToManyField(User, related_name='liked_posts')
+    likes = models.ManyToManyField(
+        User, related_name='liked_posts', blank=True)
     repost_count = models.PositiveIntegerField(default=0)
+    comments = models.ManyToManyField(
+        'Comment', related_name='post_comments', blank=True)
 
     def __str__(self):
         return f"{self.author}'s post {self.id}"
@@ -46,3 +49,17 @@ class VideoPost(Post):
 
     def __str__(self):
         return f"{self.author}'s video post"
+
+
+class Comment(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Reply(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    parent_comment = models.ForeignKey(
+        Comment, on_delete=models.CASCADE, related_name='replies')

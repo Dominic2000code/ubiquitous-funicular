@@ -14,26 +14,41 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class TextPostSerializer(serializers.ModelSerializer):
+    likes = serializers.SerializerMethodField()
+
     class Meta:
         model = TextPost
-        fields = ['id', 'author', 'created_at', 'content']
+        fields = ['id', 'author', 'created_at', 'content', 'likes']
+
+    def get_likes(self, obj):
+        return r.zscore('post:likes_count', obj.id) or 0
 
 
 class ImagePostSerializer(serializers.ModelSerializer):
+    likes = serializers.SerializerMethodField()
+
     class Meta:
         model = ImagePost
-        fields = ['id', 'author', 'created_at', 'image']
+        fields = ['id', 'author', 'created_at', 'image', 'likes']
+
+    def get_likes(self, obj):
+        return r.zscore('post:likes_count', obj.id) or 0
 
 
 class VideoPostSerializer(serializers.ModelSerializer):
+    likes = serializers.SerializerMethodField()
+
     class Meta:
         model = VideoPost
-        fields = ['id', 'author', 'created_at', 'video']
+        fields = ['id', 'author', 'created_at', 'video', 'likes']
+
+    def get_likes(self, obj):
+        return r.zscore('post:likes_count', obj.id) or 0
 
 
 class PostSerializer(serializers.ModelSerializer):
     content_object = serializers.SerializerMethodField()
-    likes_count = serializers.SerializerMethodField()
+    likes = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True)
 
     class Meta:
@@ -51,7 +66,7 @@ class PostSerializer(serializers.ModelSerializer):
             serializer = None
         return serializer.data if serializer else None
 
-    def get_likes_count(self, obj):
+    def get_likes(self, obj):
         return r.zscore('post:likes_count', obj.id) or 0
 
 

@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.files import File
-from posts.models import TextPost, VideoPost, ImagePost, Repost
+from posts.models import TextPost, VideoPost, ImagePost, Repost, Comment, Reply, Post
 from django.core.files.storage import default_storage
 from django.conf import settings
 import io
@@ -39,6 +39,19 @@ class PostViewsTests(TestCase):
 
         self.repost = Repost.objects.create(
             original_post=self.text_post, user=self.user)
+
+        self.comment_data = {
+            'author': self.user,
+            'content': 'This is a comment.'
+        }
+        self.comment = Comment.objects.create(**self.comment_data)
+
+        self.reply_data = {
+            'author': self.user,
+            'content': 'This is a reply.',
+            'parent_comment': self.comment
+        }
+        self.reply = Reply.objects.create(**self.reply_data)
 
         self.r = redis.StrictRedis(host=settings.REDIS_HOST,
                                    port=settings.REDIS_PORT, db=settings.TEST_REDIS_DB)
@@ -155,3 +168,69 @@ class PostViewsTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 0)
+
+    def test_list_create_comment_view(self):
+        url = reverse('api:post-comment-list', args=[self.text_post.id])
+        data = {
+            'author': self.user.id,
+            'content': 'This is a comment content.'
+        }
+        response = self.client.post(url, data=data)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['content'],
+                         data['content'])
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
+    def test_retrieve_update_destroy_comment_view(self):
+        self.text_post.comments.add(self.comment)
+        url = reverse('api:post-comment-detail',
+                      args=[self.text_post.id, self.comment.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['content'],
+                         self.comment_data['content'])
+
+        updated_content = 'Updated comment content.'
+        response = self.client.patch(url, data={
+            'content': updated_content})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['content'], updated_content)
+
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 204)
+
+    def test_list_create_reply_view(self):
+        url = reverse('api:comment-reply-list',
+                      args=[self.comment.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
+        data = {
+            'author': self.user.id,
+            'content': 'This is a reply.',
+            'parent_comment': self.comment.id
+        }
+        response = self.client.post(url, data=data)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['content'], self.reply_data['content'])
+
+    def test_retrieve_update_destroy_reply_view(self):
+        url = reverse('api:comment-reply-detail',
+                      args=[self.comment.id, self.reply.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['content'], self.reply_data['content'])
+
+        updated_content = 'Updated reply content.'
+        response = self.client.patch(url, data={
+            'content': updated_content})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['content'], updated_content)
+
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 204)

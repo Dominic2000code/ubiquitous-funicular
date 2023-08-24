@@ -5,12 +5,10 @@ from rest_framework import status
 from users.models import CustomUser, Follow
 from users.serializers import CustomUserSerializer
 from django.conf import settings
-from django.test import override_settings
 from ..utils import set_testing
 import redis
 
 
-@override_settings(REDIS_DB=settings.TEST_REDIS_DB)
 class CustomUserViewsTest(TestCase):
 
     def setUp(self):
@@ -32,7 +30,7 @@ class CustomUserViewsTest(TestCase):
         )
         self.client.force_authenticate(self.user)
         self.r = redis.StrictRedis(host=settings.REDIS_HOST,
-                                   port=settings.REDIS_PORT, db=settings.REDIS_DB)
+                                   port=settings.REDIS_PORT, db=settings.TEST_REDIS_DB)
 
     def tearDown(self):
         self.r.zrem('user:follower_count', self.user.id)

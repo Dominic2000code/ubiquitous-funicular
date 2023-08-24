@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from .models import TextPost, ImagePost, VideoPost, Post, Repost
+from .models import TextPost, ImagePost, VideoPost, Post, Repost, Comment, Reply
 from .serializers import TextPostSerializer, ImagePostSerializer, VideoPostSerializer
 
 User = get_user_model()
@@ -91,3 +91,25 @@ class PostModelTests(TestCase):
             original_post=text_post, user=self.user)
         self.assertEqual(
             str(repost), f"Repost of {text_post.author}'s post by {self.user}")
+
+    def test_create_comment(self):
+        comment = Comment.objects.create(
+            author=self.user,
+            content='This is a comment.'
+        )
+        self.assertEqual(comment.author, self.user)
+        self.assertEqual(comment.content, 'This is a comment.')
+
+    def test_create_reply(self):
+        comment = Comment.objects.create(
+            author=self.user,
+            content='This is a comment.'
+        )
+        reply = Reply.objects.create(
+            author=self.user,
+            content='This is a reply.',
+            parent_comment=comment
+        )
+        self.assertEqual(reply.author, self.user)
+        self.assertEqual(reply.content, 'This is a reply.')
+        self.assertEqual(reply.parent_comment, comment)

@@ -14,3 +14,4 @@ from .group_views import (
     GroupListCreateView, JoinLeaveGroupView,
     GroupDeleteView, KickMemberView,
     GroupPostDetailView, GroupPostListCreateView)
+from .search_views import SearchView, UserSearchView, GroupSearchView, PostSearchView

@@ -12,7 +12,8 @@ from .views import (CustomUserDetailView, CustomUserListCreateView,
                     KickMemberView, GroupPostListCreateView,
                     GroupPostDetailView, CommentDetailView,
                     CommentListCreateView, ReplyDetailView,
-                    ReplyListCreateView)
+                    ReplyListCreateView, SearchView,
+                    UserSearchView, GroupSearchView, PostSearchView)
 
 app_name = 'api'
 
@@ -78,4 +79,9 @@ urlpatterns = [
     path('groups/posts/', GroupPostListCreateView.as_view(), name='group-post-list'),
     path('groups/post/<int:pk>/', GroupPostDetailView.as_view(),
          name='group-post-detail'),
+
+    path('search/', SearchView.as_view(), name='search'),
+    path('search/users/', UserSearchView.as_view(), name='user-search'),
+    path('search/posts/', PostSearchView.as_view(), name='post-search'),
+    path('search/groups/', GroupSearchView.as_view(), name='group-search'),
 ]

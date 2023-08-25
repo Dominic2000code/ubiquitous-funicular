@@ -13,6 +13,7 @@ class Post(PolymorphicModel):
     repost_count = models.PositiveIntegerField(default=0)
     comments = models.ManyToManyField(
         'Comment', related_name='post_comments', blank=True)
+    views_count = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"{self.author}'s post {self.id}"

@@ -234,3 +234,21 @@ class PostViewsTests(TestCase):
 
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 204)
+
+    def test_increment_views_count(self):
+        initial_views_count = self.text_post.views_count
+
+        url = reverse('api:increment-views', args=[self.text_post.id])
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 200)
+        updated_post = TextPost.objects.get(id=self.text_post.id)
+        self.assertEqual(updated_post.views_count, initial_views_count + 1)
+
+    def test_trending_popular_posts(self):
+        self.text_post.comments.add(self.comment)
+        url = reverse('api:trending-popular-posts')
+        response = self.client.get(url)
+        print(response.content)
+        self.assertEqual(response.status_code, 200)
+        self.assertGreaterEqual(len(response.data), 0)

@@ -18,7 +18,7 @@ class PostPrivacyMixin(APIView):
             return {"bool_val": True, "msg": ""}
 
         if post.privacy_level == Post.PrivacyChoices.FRIENDS_ONLY:
-            return {"bool_val": request.user.pk in [following_obj.follower.pk for following_obj in post.author.following.all()], "msg": "This post is for friends only."}
+            return {"bool_val": request.user.pk in [follow_obj.follower.pk for follow_obj in post.author.following.all()], "msg": "This post is for friends only."}
 
         if post.privacy_level == Post.PrivacyChoices.PRIVATE:
             return {"bool_val": request.user == post.author, "msg": "This post is private"}

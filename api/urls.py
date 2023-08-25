@@ -14,7 +14,8 @@ from .views import (CustomUserDetailView, CustomUserListCreateView,
                     CommentListCreateView, ReplyDetailView,
                     ReplyListCreateView, SearchView,
                     UserSearchView, GroupSearchView, PostSearchView,
-                    IncrementViewsCount, TrendingPopularPosts)
+                    IncrementViewsCount, TrendingPopularPosts,
+                    ChangePostPrivacyLevelView)
 
 app_name = 'api'
 
@@ -70,6 +71,9 @@ urlpatterns = [
          ReplyListCreateView.as_view(), name='comment-reply-list'),
     path('posts/comments/<int:comment_id>/replies/<int:pk>/',
          ReplyDetailView.as_view(), name='comment-reply-detail'),
+
+    path('posts/<int:post_id>/change-privacy/',
+         ChangePostPrivacyLevelView.as_view(), name='change-privacy-level'),
 
     path('groups/', GroupListCreateView.as_view(), name='group-list-create'),
     path('groups/<int:group_id>/join/',

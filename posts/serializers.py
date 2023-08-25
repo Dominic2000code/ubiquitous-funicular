@@ -18,7 +18,8 @@ class TextPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TextPost
-        fields = ['id', 'author', 'created_at', 'content', 'likes']
+        fields = ['id', 'author', 'created_at',
+                  'content', 'likes', 'views_count']
 
     def get_likes(self, obj):
         return r.zscore('post:likes_count', obj.id) or 0
@@ -29,7 +30,8 @@ class ImagePostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ImagePost
-        fields = ['id', 'author', 'created_at', 'image', 'likes']
+        fields = ['id', 'author', 'created_at',
+                  'image', 'likes', 'views_count']
 
     def get_likes(self, obj):
         return r.zscore('post:likes_count', obj.id) or 0
@@ -40,7 +42,8 @@ class VideoPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VideoPost
-        fields = ['id', 'author', 'created_at', 'video', 'likes']
+        fields = ['id', 'author', 'created_at',
+                  'video', 'likes', 'views_count']
 
     def get_likes(self, obj):
         return r.zscore('post:likes_count', obj.id) or 0

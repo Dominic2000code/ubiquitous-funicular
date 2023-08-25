@@ -13,7 +13,8 @@ from .views import (CustomUserDetailView, CustomUserListCreateView,
                     GroupPostDetailView, CommentDetailView,
                     CommentListCreateView, ReplyDetailView,
                     ReplyListCreateView, SearchView,
-                    UserSearchView, GroupSearchView, PostSearchView)
+                    UserSearchView, GroupSearchView, PostSearchView,
+                    IncrementViewsCount, TrendingPopularPosts)
 
 app_name = 'api'
 
@@ -52,6 +53,10 @@ urlpatterns = [
 
     path('posts/toggle-like/<int:post_id>/',
          ToggleLikeView.as_view(), name='toggle-like'),
+    path('posts/<int:post_id>/increment-views/',
+         IncrementViewsCount.as_view(), name='increment-views'),
+    path('posts/trending-popular/', TrendingPopularPosts.as_view(),
+         name='trending-popular-posts'),
 
     path('posts/repost/<int:post_id>/', RepostView.as_view(), name='repost'),
     path('posts/reposts/<int:post_id>/',

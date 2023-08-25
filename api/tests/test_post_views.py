@@ -249,6 +249,5 @@ class PostViewsTests(TestCase):
         self.text_post.comments.add(self.comment)
         url = reverse('api:trending-popular-posts')
         response = self.client.get(url)
-        print(response.content)
         self.assertEqual(response.status_code, 200)
         self.assertGreaterEqual(len(response.data), 0)

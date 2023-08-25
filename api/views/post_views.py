@@ -11,8 +11,15 @@ from posts.serializers import (
     TextPostSerializer, ImagePostSerializer, VideoPostSerializer,
     PostSerializer, RepostSerializer, CommentSerializer, ReplySerializer
 )
+from django.db.models import F, Count
+from django.db.models.functions import Coalesce
+from django.db.models import Subquery, OuterRef
+
 import redis
 from django.conf import settings
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 r = redis.Redis(host=settings.REDIS_HOST,
                 port=settings.REDIS_PORT, db=settings.REDIS_DB)
@@ -174,3 +181,37 @@ class ReplyDetailView(generics.RetrieveUpdateDestroyAPIView):
         reply = get_object_or_404(
             Reply, id=reply_id,  parent_comment_id=comment_id)
         return reply
+
+
+class IncrementViewsCount(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, post_id):
+        try:
+            post = Post.objects.get(pk=post_id)
+            post.views_count += 1
+            post.save()
+            return Response({"detail": "ok"}, status=status.HTTP_200_OK)
+        except Post.DoesNotExist:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class TrendingPopularPosts(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = PostSerializer
+
+    def get_queryset(self):
+        likes_count_subquery = User.objects.filter(
+            liked_posts=OuterRef('pk')
+        ).annotate(likes_count=Count('liked_posts')).values('likes_count')[:1]
+
+        comments_count_subquery = Comment.objects.filter(
+            post_comments=OuterRef('pk')
+        ).annotate(comments_count=Count('post_comments')).values('comments_count')[:1]
+
+        queryset = Post.objects.annotate(
+            total_activity=F('views_count') + F('repost_count') + Coalesce(Subquery(
+                likes_count_subquery), 0) + Coalesce(Subquery(comments_count_subquery), 0)
+        ).order_by('-total_activity')[:10]
+
+        return queryset

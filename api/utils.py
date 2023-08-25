@@ -14,8 +14,6 @@ def set_testing(value):
 
 class PostPrivacyMixin(APIView):
     def check_privacy(self, request, post):
-        print(request.user.pk)
-        print([follow_obj.follower.pk for follow_obj in post.author.following.all()])
         if post.privacy_level == Post.PrivacyChoices.PUBLIC:
             return {"bool_val": True, "msg": ""}
 

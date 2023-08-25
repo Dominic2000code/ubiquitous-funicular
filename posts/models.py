@@ -6,6 +6,12 @@ User = get_user_model()
 
 
 class Post(PolymorphicModel):
+
+    class PrivacyChoices(models.TextChoices):
+        PUBLIC = 'public', 'Public'
+        FRIENDS_ONLY = 'friends_only', 'Friends Only'
+        PRIVATE = 'private', 'Private'
+
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     likes = models.ManyToManyField(
@@ -14,6 +20,8 @@ class Post(PolymorphicModel):
     comments = models.ManyToManyField(
         'Comment', related_name='post_comments', blank=True)
     views_count = models.PositiveIntegerField(default=0)
+    privacy_level = models.CharField(
+        choices=PrivacyChoices.choices, default=PrivacyChoices.PUBLIC, max_length=20)
 
     def __str__(self):
         return f"{self.author}'s post {self.id}"

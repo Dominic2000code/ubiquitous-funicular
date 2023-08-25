@@ -13,6 +13,10 @@ User = get_user_model()
 
 
 class SearchView(generics.ListAPIView):
+    """
+    Returns data matching query parameter from groups, posts and users.  
+        eg: /api/search?q="test"
+    """
     serializer_classes = {
         'users': CustomUserSerializer,
         'posts': TextPostSerializer,
@@ -40,6 +44,10 @@ class SearchView(generics.ListAPIView):
 
 
 class UserSearchView(generics.ListAPIView):
+    """
+    Returns data matching query parameter from users.
+        eg: /api/search/users?q="test user"
+    """
     queryset = CustomUserSerializer
     serializer_class = CustomUserSerializer
 
@@ -49,6 +57,10 @@ class UserSearchView(generics.ListAPIView):
 
 
 class PostSearchView(generics.ListAPIView):
+    """
+    Returns data matching query parameter from posts.
+        eg: /api/search/posts?q="test post"
+    """
     queryset = TextPost
     serializer_class = TextPostSerializer
 
@@ -58,6 +70,10 @@ class PostSearchView(generics.ListAPIView):
 
 
 class GroupSearchView(generics.ListAPIView):
+    """
+    Returns data matching query parameter from groups.
+        eg: /api/search/groups?q="test group"
+    """
     queryset = Group
     serializer_class = GroupSerializer
 

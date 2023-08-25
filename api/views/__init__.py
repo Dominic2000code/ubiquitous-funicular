@@ -15,3 +15,4 @@ from .group_views import (
     GroupDeleteView, KickMemberView,
     GroupPostDetailView, GroupPostListCreateView)
 from .search_views import SearchView, UserSearchView, GroupSearchView, PostSearchView
+from .settings_views import ChangePostPrivacyLevelView

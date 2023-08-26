@@ -26,6 +26,14 @@ python manage.py runserver
 redis-server
 ```
 
+## Recommendations
+
+To generate datasets for the recommender you must make sure there is enough data on  different posts(likes and views), then run
+
+```bash
+python generate_csv.py # to generate datasets for recommender
+```
+
 ## Run tests
 
 ```bash

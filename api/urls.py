@@ -1,5 +1,4 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from .views import (CustomUserDetailView, CustomUserListCreateView,
                     TextPostCreateView, TextPostDetailView,
                     ImagePostCreateView, ImagePostDetailView,
@@ -15,11 +14,10 @@ from .views import (CustomUserDetailView, CustomUserListCreateView,
                     ReplyListCreateView, SearchView,
                     UserSearchView, GroupSearchView, PostSearchView,
                     IncrementViewsCount, TrendingPopularPosts,
-                    ChangePostPrivacyLevelView, ChangeProfileVisibilityView)
+                    ChangePostPrivacyLevelView, ChangeProfileVisibilityView,
+                    RecommendationView)
 
 app_name = 'api'
-
-router = DefaultRouter()
 
 
 urlpatterns = [
@@ -61,6 +59,9 @@ urlpatterns = [
          IncrementViewsCount.as_view(), name='increment-views'),
     path('posts/trending-popular/', TrendingPopularPosts.as_view(),
          name='trending-popular-posts'),
+
+    path('posts/recommendation/<int:user_id>/',
+         RecommendationView.as_view(), name='recommend-posts'),
 
     path('posts/repost/<int:post_id>/', RepostView.as_view(), name='repost'),
     path('posts/reposts/<int:post_id>/',

@@ -15,7 +15,7 @@ from .views import (CustomUserDetailView, CustomUserListCreateView,
                     ReplyListCreateView, SearchView,
                     UserSearchView, GroupSearchView, PostSearchView,
                     IncrementViewsCount, TrendingPopularPosts,
-                    ChangePostPrivacyLevelView)
+                    ChangePostPrivacyLevelView, ChangeProfileVisibilityView)
 
 app_name = 'api'
 
@@ -33,6 +33,9 @@ urlpatterns = [
          FollowerListView.as_view(), name='follower-list'),
     path('users/following/<int:user_id>/',
          FollowingListView.as_view(), name='following-list'),
+
+    path('users/<int:user_id>/change-profile-visibility/',
+         ChangeProfileVisibilityView.as_view(), name='change-profile-visibility'),
 
     path('posts/text-posts/', TextPostCreateView.as_view(),
          name='textpost-list-create'),

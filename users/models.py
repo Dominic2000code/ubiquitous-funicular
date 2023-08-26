@@ -10,12 +10,19 @@ r = redis.Redis(host=settings.REDIS_HOST,
 
 
 class CustomUser(AbstractUser):
+    class ProfileVisibilityChoices(models.TextChoices):
+        PUBLIC = 'public', 'Public'
+        FRIENDS_ONLY = 'friends_only', 'Friends Only'
+        PRIVATE = 'private', 'Private'
+
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
     age = models.PositiveIntegerField(null=True, blank=True)
     profile_picture = models.ImageField(
         upload_to='profile_pictures/', blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
+    profile_visibility = models.CharField(
+        choices=ProfileVisibilityChoices.choices, default=ProfileVisibilityChoices.PUBLIC, max_length=20)
 
     def __str__(self) -> str:
         return self.username

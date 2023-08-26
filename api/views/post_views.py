@@ -14,10 +14,11 @@ from posts.serializers import (
 from django.db.models import F, Count
 from django.db.models.functions import Coalesce
 from django.db.models import Subquery, OuterRef
-
+from ..permissions import IsAuthorOrReadOnly
 import redis
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from ..utils import PostPrivacyMixin
 
 User = get_user_model()
 
@@ -31,10 +32,20 @@ class TextPostCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
 
-class TextPostDetailView(generics.RetrieveUpdateDestroyAPIView):
+class TextPostDetailView(PostPrivacyMixin, generics.RetrieveUpdateDestroyAPIView):
     queryset = TextPost.objects.all()
     serializer_class = TextPostSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
+
+    def retrieve(self, request, *args, **kwargs):
+        post = self.get_object()
+
+        check = self.check_privacy(request, post)
+
+        if check['bool_val']:
+            return super().retrieve(request, *args, **kwargs)
+        else:
+            return Response({"detail": check['msg']}, status=status.HTTP_403_FORBIDDEN)
 
 
 class ImagePostCreateView(generics.ListCreateAPIView):
@@ -43,10 +54,20 @@ class ImagePostCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
 
-class ImagePostDetailView(generics.RetrieveUpdateDestroyAPIView):
+class ImagePostDetailView(PostPrivacyMixin, generics.RetrieveUpdateDestroyAPIView):
     queryset = ImagePost.objects.all()
     serializer_class = ImagePostSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
+
+    def retrieve(self, request, *args, **kwargs):
+        post = self.get_object()
+
+        check = self.check_privacy(request, post)
+
+        if check['bool_val']:
+            return super().retrieve(request, *args, **kwargs)
+        else:
+            return Response({"detail": check['msg']}, status=status.HTTP_403_FORBIDDEN)
 
 
 class VideoPostCreateView(generics.ListCreateAPIView):
@@ -55,10 +76,20 @@ class VideoPostCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
 
-class VideoPostDetailView(generics.RetrieveUpdateDestroyAPIView):
+class VideoPostDetailView(PostPrivacyMixin, generics.RetrieveUpdateDestroyAPIView):
     queryset = VideoPost.objects.all()
     serializer_class = VideoPostSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
+
+    def retrieve(self, request, *args, **kwargs):
+        post = self.get_object()
+
+        check = self.check_privacy(request, post)
+
+        if check['bool_val']:
+            return super().retrieve(request, *args, **kwargs)
+        else:
+            return Response({"detail": check['msg']}, status=status.HTTP_403_FORBIDDEN)
 
 
 class PostListView(generics.ListAPIView):
@@ -67,10 +98,20 @@ class PostListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
 
-class PostDetailView(generics.RetrieveAPIView):
+class PostDetailView(PostPrivacyMixin, generics.RetrieveAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        post = self.get_object()
+
+        check = self.check_privacy(request, post)
+
+        if check['bool_val']:
+            return super().retrieve(request, *args, **kwargs)
+        else:
+            return Response({"detail": check['msg']}, status=status.HTTP_403_FORBIDDEN)
 
 
 class ToggleLikeView(APIView):

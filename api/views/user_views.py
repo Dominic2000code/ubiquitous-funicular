@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
+from ..permissions import IsOwnerOrReadOnly
 import redis
 
 r = redis.Redis(host=settings.REDIS_HOST,
@@ -26,7 +27,26 @@ class CustomUserListCreateView(generics.ListCreateAPIView):
 class CustomUserDetailView(generics.RetrieveUpdateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+
+        if user.profile_visibility == CustomUser.ProfileVisibilityChoices.PUBLIC:
+            return super().retrieve(request, *args, **kwargs)
+
+        elif user.profile_visibility == CustomUser.ProfileVisibilityChoices.FRIENDS_ONLY:
+            if request.user.pk in [follow_obj.follower.pk for follow_obj in user.following.all()]:
+                return super().retrieve(request, *args, **kwargs)
+            else:
+                return Response({"detail": "This profile is visible to friends only."}, status=status.HTTP_403_FORBIDDEN)
+
+        # Check if the post is private and the request user is the author
+        elif user.profile_visibility == CustomUser.ProfileVisibilityChoices.PRIVATE:
+            if request.user.pk == user.pk:
+                return super().retrieve(request, *args, **kwargs)
+            else:
+                return Response({"detail": "This profile is private."}, status=status.HTTP_403_FORBIDDEN)
 
 
 class ToggleFollowView(APIView):

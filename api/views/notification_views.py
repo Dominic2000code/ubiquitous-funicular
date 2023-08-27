@@ -36,4 +36,4 @@ class NotificationMarkReadView(APIView):
 
         notification.is_read = True
         notification.save()
-        return Response(status=status.HTTP_200_OK)
+        return Response({'detail': 'Notification marked as read'}, status=status.HTTP_200_OK)

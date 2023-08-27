@@ -1,6 +1,5 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from .models import CommentNotification, GroupNotification, FollowNotification
 from posts.models import TextPost
 from groups.models import Group
 from .notification import (

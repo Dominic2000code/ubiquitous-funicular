@@ -91,7 +91,7 @@ class ToggleFollowView(APIView):
 class FollowerListView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, user_id, format=None):
+    def get(self, request, user_id):
         if not settings.TESTING:
             cached_data = cache.get(f'followers_data_{user_id}')
             if cached_data:

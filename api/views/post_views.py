@@ -270,7 +270,6 @@ class RecommendationView(APIView):
         except User.DoesNotExist:
             return Response({"detail": "Invalid user ID."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Specify the correct path to the recommendation.py file
         recommendation_path = os.path.join(
             settings.BASE_DIR, 'api', 'recommendation', 'recommendation.py')
         # Execute the recommendation logic
@@ -278,7 +277,7 @@ class RecommendationView(APIView):
 
         recommender_posts = recommend_posts(user_id)
         post_ids = recommender_posts['post_id']
-        # Fetch all recommended posts in a single query
+
         recommended_posts_queryset = Post.objects.filter(
             ~Q(author=user_id), id__in=post_ids)
         recommended_posts = PostSerializer(

@@ -16,3 +16,4 @@ from .group_views import (
     GroupPostDetailView, GroupPostListCreateView)
 from .search_views import SearchView, UserSearchView, GroupSearchView, PostSearchView
 from .settings_views import ChangePostPrivacyLevelView, ChangeProfileVisibilityView
+from .notification_views import NotificationListView, NotificationMarkReadView

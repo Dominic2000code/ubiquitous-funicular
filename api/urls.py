@@ -15,7 +15,7 @@ from .views import (CustomUserDetailView, CustomUserListCreateView,
                     UserSearchView, GroupSearchView, PostSearchView,
                     IncrementViewsCount, TrendingPopularPosts,
                     ChangePostPrivacyLevelView, ChangeProfileVisibilityView,
-                    RecommendationView)
+                    RecommendationView, NotificationMarkReadView, NotificationListView)
 
 app_name = 'api'
 
@@ -97,4 +97,9 @@ urlpatterns = [
     path('search/users/', UserSearchView.as_view(), name='user-search'),
     path('search/posts/', PostSearchView.as_view(), name='post-search'),
     path('search/groups/', GroupSearchView.as_view(), name='group-search'),
+
+    path('notifications/<int:user_id>/',
+         NotificationListView.as_view(), name='user-notifications'),
+    path('notifications/mark-read/<int:pk>/',
+         NotificationMarkReadView.as_view(), name='mark-notification-read'),
 ]

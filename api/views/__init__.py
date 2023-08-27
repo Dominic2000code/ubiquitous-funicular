@@ -9,7 +9,7 @@ from .post_views import (
     ToggleLikeView, RepostView,
     RepostListAPIView, CommentListCreateView,
     CommentDetailView, ReplyListCreateView,
-    ReplyDetailView, IncrementViewsCount, TrendingPopularPosts)
+    ReplyDetailView, IncrementViewsCount, TrendingPopularPosts, RecommendationView)
 from .group_views import (
     GroupListCreateView, JoinLeaveGroupView,
     GroupDeleteView, KickMemberView,

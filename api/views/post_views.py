@@ -1,3 +1,4 @@
+import os
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -19,6 +20,8 @@ import redis
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from ..utils import PostPrivacyMixin
+from ..recommendation.recommendation import recommend_posts
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -256,3 +259,27 @@ class TrendingPopularPosts(generics.ListAPIView):
         ).order_by('-total_activity')[:10]
 
         return queryset
+
+
+class RecommendationView(APIView):
+    def get(self, request, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"detail": "Invalid user ID."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Specify the correct path to the recommendation.py file
+        recommendation_path = os.path.join(
+            settings.BASE_DIR, 'api', 'recommendation', 'recommendation.py')
+        # Execute the recommendation logic
+        exec(open(recommendation_path).read())
+
+        recommender_posts = recommend_posts(user_id)
+        post_ids = recommender_posts['post_id']
+        # Fetch all recommended posts in a single query
+        recommended_posts_queryset = Post.objects.filter(
+            ~Q(author=user_id), id__in=post_ids)
+        recommended_posts = PostSerializer(
+            recommended_posts_queryset, many=True)
+
+        return Response({"recommended_posts": recommended_posts.data}, status=status.HTTP_200_OK)

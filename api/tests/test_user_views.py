@@ -1,7 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
-from rest_framework import status
 from users.models import CustomUser, Follow
 from users.serializers import CustomUserSerializer
 from django.conf import settings
@@ -41,7 +40,7 @@ class CustomUserViewsTest(TestCase):
         data['username'] = 'test'
         response = self.client.post(
             reverse('api:user-list-create'), data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, 201)
 
     def test_list_users(self):
         """List all users in db"""
@@ -49,7 +48,7 @@ class CustomUserViewsTest(TestCase):
         users = CustomUser.objects.all()
         serializer = CustomUserSerializer(users, many=True)
         self.assertEqual(response.data, serializer.data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
 
     def test_retrieve_user(self):
         """Retrieve a single user from db """
@@ -58,7 +57,7 @@ class CustomUserViewsTest(TestCase):
         user = CustomUser.objects.get(id=self.user.id)
         serializer = CustomUserSerializer(user)
         self.assertEqual(response.data, serializer.data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
 
     def test_update_user(self):
         """Update fields of a user"""
@@ -71,7 +70,7 @@ class CustomUserViewsTest(TestCase):
         }
         response = self.client.put(
             reverse('api:user-detail', args=[self.user.id]), updated_data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         user = CustomUser.objects.get(id=self.user.id)
         self.assertEqual(user.first_name, updated_data['first_name'])
         self.assertEqual(user.age, updated_data['age'])
@@ -81,10 +80,10 @@ class CustomUserViewsTest(TestCase):
 
         response = self.client.post(url)
         self.assertEqual(response.status_code,
-                         status.HTTP_201_CREATED)  # Follow
+                         201)  # Follow
 
         response = self.client.post(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)  # Unfollow
+        self.assertEqual(response.status_code, 200)  # Unfollow
 
     def test_follower_list_view(self):
         follow = Follow.objects.create(user=self.user, follower=self.follower)
@@ -92,7 +91,7 @@ class CustomUserViewsTest(TestCase):
 
         with set_testing(True):  # Temporarily set TESTING to True
             response = self.client.get(url)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, 200)
             self.assertEqual(len(response.data['followers']), 1)
             self.assertEqual(
                 response.data['followers'][0]['follower']['username'],
@@ -105,7 +104,7 @@ class CustomUserViewsTest(TestCase):
 
         with set_testing(True):
             response = self.client.get(url)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, 200)
             self.assertEqual(len(response.data['following']), 1)
             self.assertEqual(
                 response.data['following'][0]['following_user']['username'],

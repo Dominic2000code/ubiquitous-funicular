@@ -50,7 +50,7 @@ class VideoPostSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    content_object = serializers.SerializerMethodField()
+    post = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True)
 
@@ -58,7 +58,7 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         exclude = ['polymorphic_ctype']
 
-    def get_content_object(self, obj):
+    def get_post(self, obj):
         if isinstance(obj, TextPost):
             serializer = TextPostSerializer(obj)
         elif isinstance(obj, ImagePost):

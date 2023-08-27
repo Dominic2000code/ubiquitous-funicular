@@ -22,6 +22,7 @@ from django.contrib.auth import get_user_model
 from ..utils import PostPrivacyMixin
 from ..recommendation.recommendation import recommend_posts
 from django.db.models import Q
+from notifications.notification import create_comment_notification
 
 User = get_user_model()
 
@@ -180,10 +181,11 @@ class CommentListCreateView(generics.ListCreateAPIView):
         return post_instance.comments.all()
 
     def perform_create(self, serializer):
+        user = self.request.user
         post_id = self.kwargs['post_id']
         post_instance = get_object_or_404(Post, id=post_id)
-
-        serializer.save(author=self.request.user)
+        create_comment_notification(sender=user, post=post_instance)
+        serializer.save(author=user)
         post_instance.comments.add(serializer.instance)
 
 

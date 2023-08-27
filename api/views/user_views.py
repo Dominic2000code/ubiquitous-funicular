@@ -10,6 +10,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from ..permissions import IsOwnerOrReadOnly
+from notifications.notification import create_follow_notification, create_unfollow_notification
 import redis
 
 r = redis.Redis(host=settings.REDIS_HOST,
@@ -62,6 +63,7 @@ class ToggleFollowView(APIView):
         try:
             follow_instance = Follow.objects.get(user=user, follower=follower)
             follow_instance.delete()
+            create_unfollow_notification(follower=follower, recipient=user)
 
             # Decrement follower count in Redis
             r.zincrby('user:follower_count', -1, user_id)
@@ -75,6 +77,7 @@ class ToggleFollowView(APIView):
                 data={'user': user_id, 'follower': follower.id})
             serializer.is_valid(raise_exception=True)
             serializer.save()
+            create_follow_notification(follower=follower, recipient=user)
 
             # Increment follower count in Redis
             r.zincrby('user:follower_count', 1, user_id)
@@ -88,7 +91,7 @@ class ToggleFollowView(APIView):
 class FollowerListView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, user_id, format=None):
+    def get(self, request, user_id):
         if not settings.TESTING:
             cached_data = cache.get(f'followers_data_{user_id}')
             if cached_data:

@@ -4,11 +4,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from groups.models import Group, Membership, GroupPost
-from groups.serializers import GroupSerializer, MembershipSerializer, GroupPostSerializer
+from groups.serializers import GroupSerializer, GroupPostSerializer
 from groups.permissions import IsGroupCreator
-from django.shortcuts import get_object_or_404
-from rest_framework import serializers
 from rest_framework.exceptions import NotFound, PermissionDenied
+from notifications.notification import create_join_group_notification, create_leave_group_notification
 
 
 class GroupListCreateView(generics.ListCreateAPIView):
@@ -33,12 +32,14 @@ class JoinLeaveGroupView(APIView):
                 return Response({"detail": "You are already a member of this group."}, status=status.HTTP_400_BAD_REQUEST)
 
             Membership.objects.create(user=user, group=group)
+            create_join_group_notification(user=user, group=group)
             return Response({"detail": f"You have joined the group {group.name}."}, status=status.HTTP_201_CREATED)
 
         elif 'leave' in request.path:
             try:
                 membership = Membership.objects.get(user=user, group=group)
                 membership.delete()
+                create_leave_group_notification(user=user, group=group)
                 return Response({"detail": f"You have left the group {group.name}."}, status=status.HTTP_200_OK)
             except Membership.DoesNotExist:
                 raise NotFound("You are not a member of this group.")

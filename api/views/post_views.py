@@ -22,6 +22,7 @@ from django.contrib.auth import get_user_model
 from ..utils import PostPrivacyMixin
 from ..recommendation.recommendation import recommend_posts
 from django.db.models import Q
+from notifications.notification import create_comment_notification
 
 User = get_user_model()
 
@@ -180,10 +181,11 @@ class CommentListCreateView(generics.ListCreateAPIView):
         return post_instance.comments.all()
 
     def perform_create(self, serializer):
+        user = self.request.user
         post_id = self.kwargs['post_id']
         post_instance = get_object_or_404(Post, id=post_id)
-
-        serializer.save(author=self.request.user)
+        create_comment_notification(sender=user, post=post_instance)
+        serializer.save(author=user)
         post_instance.comments.add(serializer.instance)
 
 
@@ -268,7 +270,6 @@ class RecommendationView(APIView):
         except User.DoesNotExist:
             return Response({"detail": "Invalid user ID."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Specify the correct path to the recommendation.py file
         recommendation_path = os.path.join(
             settings.BASE_DIR, 'api', 'recommendation', 'recommendation.py')
         # Execute the recommendation logic
@@ -276,7 +277,7 @@ class RecommendationView(APIView):
 
         recommender_posts = recommend_posts(user_id)
         post_ids = recommender_posts['post_id']
-        # Fetch all recommended posts in a single query
+
         recommended_posts_queryset = Post.objects.filter(
             ~Q(author=user_id), id__in=post_ids)
         recommended_posts = PostSerializer(

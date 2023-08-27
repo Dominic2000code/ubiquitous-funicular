@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'users',
     'api',
     'groups',
+    'notifications',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
